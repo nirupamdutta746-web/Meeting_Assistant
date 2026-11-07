@@ -1,0 +1,424 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "*"
+        ],
+        "additionalFields": {
+          "download": true
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -272,
+        -224
+      ],
+      "id": "f5613423-f6ea-4e24-98ab-4171b6d79488",
+      "name": "Telegram Trigger",
+      "webhookId": "61dc5d82-e1fa-4d05-9d78-0c8e23202d62",
+      "credentials": {
+        "telegramApi": {
+          "id": "zTbWgWu742zhvucR",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert AI meeting assistant. Analyze the provided meeting transcript and return ONLY a single, valid JSON object. \n\nCRITICAL REQUIREMENTS:\n- Output raw JSON only. \n- Do NOT include markdown code blocks, backticks (```), or the word \"json\" at the beginning/end.\n- Ensure all key names and string values use valid double quotes.\n\nJSON Schema:\n{\n  \"summary\": \"Brief 2-3 sentence overview of the meeting\",\n  \"decisions\": [\n    \"Decision 1\", \n    \"Decision 2\"\n  ],\n  \"action_items\": [\n    {\n      \"task\": \"Task description\",\n      \"owner\": \"Name or 'Unassigned'\",\n      \"deadline\": \"YYYY-MM-DD, specific day, or 'Not specified'\"\n    }\n  ],\n  \"open_questions\": [\n    \"Question 1\"\n  ]\n}\n\nTranscript:\nTranscript:\n{{ $json?.text || $json?.message?.text || \"\" }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert AI meeting assistant that extracts structured meeting notes."
+            }
+          ]
+        },
+        "batching": {
+          "batchSize": 5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        624,
+        -224
+      ],
+      "id": "d4d0bf2a-9f9a-4722-a1f2-2bf49c7367d0",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {
+          "maxOutputTokens": 400,
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        696,
+        8
+      ],
+      "id": "53749644-9cb7-4135-b314-a086092fd6f0",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "XLZV1GaWwQkLb1Ya",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1rE6ATOPvJZLZnANFeWH2zrjeL2S8Q1qK6KRQFdys5uQ",
+          "mode": "list",
+          "cachedResultName": "Meeting Action Items",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1rE6ATOPvJZLZnANFeWH2zrjeL2S8Q1qK6KRQFdys5uQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1rE6ATOPvJZLZnANFeWH2zrjeL2S8Q1qK6KRQFdys5uQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Task Description": "={{ $json.task }}",
+            "Assignee": "={{ $json.owner }}",
+            "Deadline": "={{ $json.deadline }}",
+            "Meeting Date": "={{ $now.format('yyyy-MM-dd') }}",
+            "Status": "Active"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Meeting Date",
+              "displayName": "Meeting Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Task Description",
+              "displayName": "Task Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Assignee",
+              "displayName": "Assignee",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Deadline",
+              "displayName": "Deadline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1200,
+        -224
+      ],
+      "id": "0237b408-2131-42ba-b3dd-9bfff29473cf",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "bNsGbZEuE41oyXzr",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=📝 *Meeting Action Item Logged*\n\n• *Task:* {{ $json.Task }}\n• *Assignee:* {{ $json.Assignee }}\n• *Deadline:* {{ $json.Deadline }}\n\n✅ *Successfully recorded in Google Sheets!*",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1424,
+        -224
+      ],
+      "id": "a92bc5e2-3019-4a0e-97c5-87c5c3653628",
+      "name": "Send a text message",
+      "webhookId": "fc9313c8-7af2-4b24-abbb-d434fcfeabc1",
+      "executeOnce": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "zTbWgWu742zhvucR",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse JSON from Gemini output with safety fallbacks\nconst llmRawResponse = $json.text || $json.response || $json.output || ($input.first() ? $input.first().json.text : \"\") || \"\"; \nlet parsed;\n\ntry {\n  // Clean markdown backticks if present\n  const cleaned = llmRawResponse.replace(/```json|```/g, '').trim();\n  parsed = JSON.parse(cleaned);\n} catch (e) {\n  // Fallback / error handling for invalid AI output\n  parsed = {\n    summary: llmRawResponse || \"Could not parse AI summary automatically.\",\n    decisions: [],\n    action_items: [],\n    open_questions: [\"Manual review required for transcript.\"]\n  };\n}\n\n// Ensure array fields exist even if Gemini returns missing keys\nconst summaryText = parsed.summary || \"No summary provided.\";\nconst decisionsList = Array.isArray(parsed.decisions) ? parsed.decisions : [];\nconst actionItemsList = Array.isArray(parsed.action_items) ? parsed.action_items : [];\nconst openQuestionsList = Array.isArray(parsed.open_questions) ? parsed.open_questions : [];\n\n// 1. Format the Telegram summary message\nlet telegramMessage = `📝 *Meeting Summary*\\n${summaryText}\\n\\n`;\n\nif (decisionsList.length > 0) {\n  telegramMessage += `💡 *Key Decisions:*\\n• ` + decisionsList.join('\\n• ') + `\\n\\n`;\n}\n\nif (actionItemsList.length > 0) {\n  telegramMessage += `✅ *Action Items:*\\n`;\n  actionItemsList.forEach(item => {\n    telegramMessage += `• ${item.task} (👤 ${item.owner || 'Unassigned'} | 📅 ${item.deadline || 'Not specified'})\\n`;\n  });\n  telegramMessage += `\\n`;\n}\n\nif (openQuestionsList.length > 0) {\n  telegramMessage += `❓ *Open Questions / Unassigned:*\\n• ` + openQuestionsList.join('\\n• ');\n}\n\n// 2. Prepare multiple items for Google Sheets (one row per task)\nconst outputItems = [];\n\nif (actionItemsList.length === 0) {\n  outputItems.push({\n    json: {\n      summary: summaryText,\n      task: \"No action items identified\",\n      owner: \"N/A\",\n      deadline: \"N/A\",\n      telegramSummary: telegramMessage\n    }\n  });\n} else {\n  actionItemsList.forEach(item => {\n    outputItems.push({\n      json: {\n        summary: summaryText,\n        task: item.task || \"N/A\",\n        owner: item.owner || \"Unassigned\",\n        deadline: item.deadline || \"Not specified\",\n        telegramSummary: telegramMessage\n      }\n    });\n  });\n}\n\nreturn outputItems;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        -224
+      ],
+      "id": "d224f4a2-2104-4ff7-996d-90b872871dd9",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "e584958a-3bc3-4e81-b0d8-d84418f39dc3"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text message"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "id": "5dbbec2f-3aca-42cb-bad5-10959f236ac2",
+                    "leftValue": "={{ $json.message.document }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "File Upload"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.5,
+      "position": [
+        -48,
+        -224
+      ],
+      "id": "4e259db0-e12c-4a54-b6d3-374bec82f419",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.document.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        176,
+        -144
+      ],
+      "id": "d2dc45c5-c153-43d3-9fa7-5738d2f11640",
+      "name": "Get a file",
+      "webhookId": "0197c266-cc89-424a-bf5d-0566413d7c1f",
+      "credentials": {
+        "telegramApi": {
+          "id": "zTbWgWu742zhvucR",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "destinationKey": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        -144
+      ],
+      "id": "c711e402-cc82-40f0-a0ae-40c6de1d70ff",
+      "name": "Extract from File"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "7dea1209-486f-48cc-a869-c26954922f8f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2dd08914077383df79b1bf99a393c1f1afab7e5cd5ccb3eacd2ac7b2f6bdc94f"
+  },
+  "nodeGroups": [],
+  "id": "zYP8k5KMfeeV6HU2",
+  "tags": []
+}

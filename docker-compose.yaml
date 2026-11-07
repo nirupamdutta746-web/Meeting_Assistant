@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      # Update this to your ngrok URL for local testing, or your GCP IP/domain for production
+      - WEBHOOK_URL=https://congested-hemstitch-plot.ngrok-free.dev
+      - GENERIC_TIMEZONE=Asia/Kolkata
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+volumes:
+  n8n_data:
