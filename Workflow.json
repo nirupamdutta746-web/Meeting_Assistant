@@ -14,7 +14,7 @@
       "typeVersion": 1.5,
       "position": [
         -272,
-        -224
+        -384
       ],
       "id": "f5613423-f6ea-4e24-98ab-4171b6d79488",
       "name": "Telegram Trigger",
@@ -44,8 +44,8 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.9,
       "position": [
-        624,
-        -224
+        848,
+        -480
       ],
       "id": "d4d0bf2a-9f9a-4722-a1f2-2bf49c7367d0",
       "name": "Basic LLM Chain"
@@ -61,8 +61,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1.2,
       "position": [
-        696,
-        8
+        920,
+        -248
       ],
       "id": "53749644-9cb7-4135-b314-a086092fd6f0",
       "name": "Google Gemini Chat Model",
@@ -157,8 +157,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        1200,
-        -224
+        1424,
+        -480
       ],
       "id": "0237b408-2131-42ba-b3dd-9bfff29473cf",
       "name": "Append row in sheet",
@@ -172,14 +172,14 @@
     {
       "parameters": {
         "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
-        "text": "=📝 *Meeting Action Item Logged*\n\n• *Task:* {{ $json.Task }}\n• *Assignee:* {{ $json.Assignee }}\n• *Deadline:* {{ $json.Deadline }}\n\n✅ *Successfully recorded in Google Sheets!*",
+        "text": "={{ $('Code in JavaScript').item.json.telegramSummary }}\n\n✅ *Successfully recorded in Google Sheets!*",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1424,
-        -224
+        1648,
+        -480
       ],
       "id": "a92bc5e2-3019-4a0e-97c5-87c5c3653628",
       "name": "Send a text message",
@@ -194,13 +194,13 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse JSON from Gemini output with safety fallbacks\nconst llmRawResponse = $json.text || $json.response || $json.output || ($input.first() ? $input.first().json.text : \"\") || \"\"; \nlet parsed;\n\ntry {\n  // Clean markdown backticks if present\n  const cleaned = llmRawResponse.replace(/```json|```/g, '').trim();\n  parsed = JSON.parse(cleaned);\n} catch (e) {\n  // Fallback / error handling for invalid AI output\n  parsed = {\n    summary: llmRawResponse || \"Could not parse AI summary automatically.\",\n    decisions: [],\n    action_items: [],\n    open_questions: [\"Manual review required for transcript.\"]\n  };\n}\n\n// Ensure array fields exist even if Gemini returns missing keys\nconst summaryText = parsed.summary || \"No summary provided.\";\nconst decisionsList = Array.isArray(parsed.decisions) ? parsed.decisions : [];\nconst actionItemsList = Array.isArray(parsed.action_items) ? parsed.action_items : [];\nconst openQuestionsList = Array.isArray(parsed.open_questions) ? parsed.open_questions : [];\n\n// 1. Format the Telegram summary message\nlet telegramMessage = `📝 *Meeting Summary*\\n${summaryText}\\n\\n`;\n\nif (decisionsList.length > 0) {\n  telegramMessage += `💡 *Key Decisions:*\\n• ` + decisionsList.join('\\n• ') + `\\n\\n`;\n}\n\nif (actionItemsList.length > 0) {\n  telegramMessage += `✅ *Action Items:*\\n`;\n  actionItemsList.forEach(item => {\n    telegramMessage += `• ${item.task} (👤 ${item.owner || 'Unassigned'} | 📅 ${item.deadline || 'Not specified'})\\n`;\n  });\n  telegramMessage += `\\n`;\n}\n\nif (openQuestionsList.length > 0) {\n  telegramMessage += `❓ *Open Questions / Unassigned:*\\n• ` + openQuestionsList.join('\\n• ');\n}\n\n// 2. Prepare multiple items for Google Sheets (one row per task)\nconst outputItems = [];\n\nif (actionItemsList.length === 0) {\n  outputItems.push({\n    json: {\n      summary: summaryText,\n      task: \"No action items identified\",\n      owner: \"N/A\",\n      deadline: \"N/A\",\n      telegramSummary: telegramMessage\n    }\n  });\n} else {\n  actionItemsList.forEach(item => {\n    outputItems.push({\n      json: {\n        summary: summaryText,\n        task: item.task || \"N/A\",\n        owner: item.owner || \"Unassigned\",\n        deadline: item.deadline || \"Not specified\",\n        telegramSummary: telegramMessage\n      }\n    });\n  });\n}\n\nreturn outputItems;"
+        "jsCode": "// Parse JSON from Gemini output with safety fallbacks\nconst llmRawResponse = $json.text || $json.response || $json.output || ($input.first() ? $input.first().json.text : \"\") || \"\"; \nlet parsed;\n\ntry {\n  // Clean markdown backticks if present\n  const cleaned = llmRawResponse.replace(/```json|```/g, '').trim();\n  parsed = JSON.parse(cleaned);\n} catch (e) {\n  // Fallback / error handling for invalid AI output\n  parsed = {\n    summary: llmRawResponse || \"Could not parse AI summary automatically.\",\n    decisions: [],\n    action_items: [],\n    open_questions: [\"Manual review required for transcript.\"]\n  };\n}\n\n// Ensure array fields exist even if Gemini returns missing keys\nconst summaryText = parsed.summary || \"No summary provided.\";\nconst decisionsList = Array.isArray(parsed.decisions) ? parsed.decisions : [];\nconst actionItemsList = Array.isArray(parsed.action_items) ? parsed.action_items : [];\nconst openQuestionsList = Array.isArray(parsed.open_questions) ? parsed.open_questions : [];\n\n// 1. Format the Telegram summary message\nlet telegramMessage = `📝 *Meeting Summary*\\n${summaryText}\\n\\n`;\n\nif (decisionsList.length > 0) {\n  telegramMessage += `💡 *Key Decisions:*\\n• ` + decisionsList.join('\\n• ') + `\\n\\n`;\n}\n\nif (actionItemsList.length > 0) {\n  telegramMessage += `✅ *Action Items:*\\n`;\n  actionItemsList.forEach(item => {\n    telegramMessage += `• ${item.task} (👤 ${item.owner || 'Unassigned'} | 📅 ${item.deadline || 'Not specified'})\\n`;\n  });\n  telegramMessage += `\\n`;\n}\n\nif (openQuestionsList.length > 0) {\n  telegramMessage += `❓ *Open Questions / Unassigned:*\\n• ` + openQuestionsList.join('\\n• ');\n}\n\n// 2. Prepare multiple items for Google Sheets (one row per task)\nconst outputItems = [];\n\nif (actionItemsList.length === 0) {\n  outputItems.push({\n    json: {\n      summary: summaryText,\n      task: \"No action items identified\",\n      owner: \"N/A\",\n      deadline: \"N/A\",\n      telegramSummary: telegramMessage\n    }\n  });\n} else {\n  actionItemsList.forEach(item => {\n    outputItems.push({\n      json: {\n        summary: summaryText,\n        task: item.task || \"N/A\",\n        owner: item.owner || \"Unassigned\",\n        deadline: item.deadline || \"Not specified\",\n        telegramSummary: telegramMessage\n      }\n    });\n  });\n}\n\nreturn outputItems;\nconst incompleteTasks = actionItemsList.filter(\n  item => item.owner === 'Unassigned' || item.deadline === 'Not specified'\n);\n\nif (incompleteTasks.length > 0) {\n  telegramMessage += `⚠️ *Action Required / Missing Clarifications:*\\n`;\n  incompleteTasks.forEach(item => {\n    if (item.owner === 'Unassigned' && item.deadline === 'Not specified') {\n      telegramMessage += `• *\"${item.task}\"* has no assigned owner and no deadline. Who is taking this?\\n`;\n    } else if (item.deadline === 'Not specified') {\n      telegramMessage += `• *\"${item.task}\"* (${item.owner}): Missing deadline. When will this be completed?\\n`;\n    } else if (item.owner === 'Unassigned') {\n      telegramMessage += `• *\"${item.task}\"*: Due on ${item.deadline}, but no owner is assigned.\\n`;\n    }\n  });\n  telegramMessage += `\\n`;\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        976,
-        -224
+        1200,
+        -480
       ],
       "id": "d224f4a2-2104-4ff7-996d-90b872871dd9",
       "name": "Code in JavaScript"
@@ -245,11 +245,11 @@
                 "conditions": [
                   {
                     "id": "5dbbec2f-3aca-42cb-bad5-10959f236ac2",
-                    "leftValue": "={{ $json.message.document }}",
-                    "rightValue": "",
+                    "leftValue": "=={{ $json.message.document || $json.message.photo }}",
+                    "rightValue": true,
                     "operator": {
-                      "type": "object",
-                      "operation": "exists",
+                      "type": "string",
+                      "operation": "notEmpty",
                       "singleValue": true
                     }
                   }
@@ -258,6 +258,29 @@
               },
               "renameOutput": true,
               "outputKey": "File Upload"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "id": "ada88253-9154-492e-abea-5d547cf05268",
+                    "leftValue": "=={{ $json.message.document || $json.message.photo ? true : false }}",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
             }
           ]
         },
@@ -267,7 +290,7 @@
       "typeVersion": 3.5,
       "position": [
         -48,
-        -224
+        -400
       ],
       "id": "4e259db0-e12c-4a54-b6d3-374bec82f419",
       "name": "Switch"
@@ -275,14 +298,14 @@
     {
       "parameters": {
         "resource": "file",
-        "fileId": "={{ $json.message.document.file_id }}",
+        "fileId": "=={{ $('Telegram Trigger').first().json.message.document?.file_id || $('Telegram Trigger').first().json.message.photo?.[$('Telegram Trigger').first().json.message.photo.length - 1]?.file_id }}",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        176,
-        -144
+        208,
+        -528
       ],
       "id": "d2dc45c5-c153-43d3-9fa7-5738d2f11640",
       "name": "Get a file",
@@ -303,11 +326,67 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.2,
       "position": [
-        400,
-        -144
+        624,
+        -480
       ],
       "id": "c711e402-cc82-40f0-a0ae-40c6de1d70ff",
       "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "9cbc370c-56b8-4ab2-8b01-b9de7c654c86",
+              "leftValue": "=={{ $json.message.document.file_name.split('.').pop().toLowerCase() }}",
+              "rightValue": "^(txt|pdf|vtt|srt|csv|log)$",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        400,
+        -384
+      ],
+      "id": "a31a057b-69ed-40ed-ae3e-d838d8e41f9a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').first().json.message.chat.id }}",
+        "text": "❌ Unsupported file format! Please upload a valid transcript file (.txt, .pdf, .vtt, .srt).",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        -288
+      ],
+      "id": "8da0cc9d-dbe2-4cf4-84dd-e95af9b45edf",
+      "name": "Send a text message1",
+      "webhookId": "ce3edfec-8400-42d1-899c-e17074758113",
+      "executeOnce": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "zTbWgWu742zhvucR",
+          "name": "Telegram account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -371,14 +450,21 @@
       "main": [
         [
           {
-            "node": "Basic LLM Chain",
+            "node": "Get a file",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Get a file",
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
             "type": "main",
             "index": 0
           }
@@ -389,7 +475,7 @@
       "main": [
         [
           {
-            "node": "Extract from File",
+            "node": "If",
             "type": "main",
             "index": 0
           }
@@ -406,14 +492,32 @@
           }
         ]
       ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "7dea1209-486f-48cc-a869-c26954922f8f",
+  "versionId": "0086fb51-0581-43cb-a940-1aaf0eb19d4a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "2dd08914077383df79b1bf99a393c1f1afab7e5cd5ccb3eacd2ac7b2f6bdc94f"
