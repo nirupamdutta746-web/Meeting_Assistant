@@ -62,7 +62,7 @@ Google Sheets Node: Connect your Google Service Account credentials and select y
 5. Activate
 Once all credentials are valid and the node mappings match your specific Google Sheet, toggle the workflow to Active in the top right corner of the n8n canvas.
 
-💡 Usage
+## 💡 Usage
 Open your configured Bot in Telegram.
 
 Send a meeting transcript. You can either:
